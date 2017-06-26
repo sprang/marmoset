@@ -1,0 +1,2 @@
+Marmoset is an implementation of the card game SET®.
+SET® is a registered trademark of Cannei, LLC.

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Categories=GNOME;GTK;Game;
+Encoding=UTF-8
+Name=Marmoset
+Version=0.9.0
+TryExec=marmoset
+Exec=marmoset
+Icon=~/marmoset/icon.svg
+Terminal=false
