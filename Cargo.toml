@@ -4,6 +4,10 @@ version = "0.9.0"
 authors = ["Steve Sprang <scs@stevesprang.com>"]
 license = "GPL-3.0+"
 description = "Implementation of the card game SET"
+repository = "https://github.com/sprang/marmoset"
+readme = "README.md"
+keywords = ["game", "card", "set"]
+categories = ["games"]
 
 [lib]
 path = "src/core/lib.rs"
