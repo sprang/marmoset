@@ -14,9 +14,9 @@ Check out the code and run `cargo build --release`.
 
 ### Desktop File and Icon
 
-To install the desktop entry for Marmoset on Linux, edit `Marmoset.desktop` so that the `Icon=~/marmoset/icon.svg` entry reflects the actual path to `icon.svg` on your system, then:
+To install the desktop entry for Marmoset on Linux, edit `org.nybble.marmoset.desktop` so that the `Icon=~/marmoset/icon.svg` entry reflects the actual path to `icon.svg` on your system, then:
 
-`cp Marmoset.desktop ~/.local/share/applications`
+`cp org.nybble.marmoset.desktop ~/.local/share/applications`
 
 Make sure the executable `target/release/marmoset` is somewhere in your `$PATH`.
 

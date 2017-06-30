@@ -1,4 +1,4 @@
 * TODO Better app icon
-* TODO Better Marmoset.desktop/icon installation method
+* TODO Better desktop file/icon installation method
 * TODO In-app Help/User Guide
 * TODO Internationalize
