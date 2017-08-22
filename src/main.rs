@@ -33,8 +33,8 @@ pub mod rules;
 
 use gdk::{ModifierType, CONTROL_MASK, SHIFT_MASK};
 use gdk_pixbuf::{Pixbuf, PixbufLoader};
+use gio::ApplicationExt;
 use gtk::*;
-use gtk::prelude::*;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -55,10 +55,10 @@ macro_rules! clone {
 fn main() {
     const APP_ID: &str = "org.nybble.marmoset";
 
-    match gtk::Application::new(Some(APP_ID), gio::APPLICATION_FLAGS_NONE) {
+    match gtk::Application::new(APP_ID, gio::APPLICATION_FLAGS_NONE) {
         Ok(app) => {
             app.connect_activate(|app| init(app));
-            app.run(0, &[]);
+            app.run(&[]);
         },
         Err(e) => {
             println!("Failed to initialize GTK application: {:?}", e);
@@ -195,9 +195,10 @@ fn build_variant_submenu(menu_data: MenuData) -> MenuItem {
     let (window, _accel_group, controller) = menu_data;
 
     // create menu items
-    let set_variant = RadioMenuItem::new_with_mnemonic_from_widget(None, Some("_Set"));
-    let superset_variant = RadioMenuItem::new_with_mnemonic_from_widget(Some(&set_variant),
-                                                                        Some("S_uperSet"));
+    let set_variant = RadioMenuItem::new_with_mnemonic("_Set");
+    let superset_variant = RadioMenuItem::new_with_mnemonic("S_uperSet");
+    superset_variant.join_group(&set_variant);
+
     // reflect config settings
     match controller.borrow().config.variant {
         Variant::Set => set_variant.set_active(true),
@@ -231,9 +232,10 @@ fn build_deck_submenu(menu_data: MenuData) -> MenuItem {
     let (_window, _accel_group, controller) = menu_data;
 
     // create menu items
-    let beginner_deck = RadioMenuItem::new_with_mnemonic_from_widget(None, Some("_Beginner"));
-    let full_deck = RadioMenuItem::new_with_mnemonic_from_widget(Some(&beginner_deck),
-                                                                 Some("_Full"));
+    let beginner_deck = RadioMenuItem::new_with_mnemonic("_Beginner");
+    let full_deck = RadioMenuItem::new_with_mnemonic("_Full");
+    full_deck.join_group(&beginner_deck);
+
     // reflect config settings
     match controller.borrow().config.deck {
         Deck::Simplified => beginner_deck.set_active(true),
