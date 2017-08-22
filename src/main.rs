@@ -127,7 +127,7 @@ macro_rules! build_menu {
         let menu = MenuItem::new_with_mnemonic($menu);
         let submenu = Menu::new();
         $( submenu.append(&$e); )*
-        menu.set_submenu(Some(&submenu));
+        menu.set_submenu(&submenu);
         menu
     }}
 }
@@ -394,14 +394,14 @@ fn build_help_menu(window: &ApplicationWindow) -> MenuItem {
             let a = AboutDialog::new();
             a.set_program_name("Marmoset");
             a.set_logo(logo().as_ref());
-            a.set_comments(Some(COMMENT));
-            a.set_copyright(Some("Copyright © 2017 Steve Sprang"));
+            a.set_comments(COMMENT);
+            a.set_copyright("Copyright © 2017 Steve Sprang");
             a.set_license_type(License::Gpl30);
-            a.set_license(Some(LICENSE));
-            a.set_website(Some("https://github.com/sprang/marmoset"));
-            a.set_website_label(Some("Marmoset Website"));
-            a.set_version(Some(VERSION));
-            a.set_transient_for(Some(&window));
+            a.set_license(LICENSE);
+            a.set_website("https://github.com/sprang/marmoset");
+            a.set_website_label("Marmoset Website");
+            a.set_version(VERSION);
+            a.set_transient_for(&window);
             a.run();
             a.destroy();
         }
