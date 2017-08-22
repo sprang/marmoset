@@ -1,6 +1,6 @@
 [package]
 name = "marmoset"
-version = "0.9.0"
+version = "0.9.1"
 authors = ["Steve Sprang <scs@stevesprang.com>"]
 license = "GPL-3.0+"
 description = "Implementation of the card game SET"
