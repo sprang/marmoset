@@ -24,13 +24,13 @@
 //!
 //!  deal |         supersets | no supersets |             total |  % without |            time
 //! ------+-------------------+--------------+-------------------+------------+-----------------
-//!     4 |            63_180 |    1_600_560 |         1_663_740 | 96.20253 % |  PT0.004201565S
-//!     5 |         4_696_380 |   20_925_216 |        25_621_596 | 81.67023 % |  PT0.058930473S
-//!     6 |       155_521_080 |  169_019_136 |       324_540_216 | 52.07957 % |  PT0.759225487S
-//!     7 |     2_808_519_480 |  668_697_120 |     3_477_216_600 | 19.23082 % |  PT8.129868621S
-//!     8 |    31_413_675_150 |  750_578_400 |    32_164_253_550 |  2.33358 % | PT41.347639338S
-//!     9 |   260_868_122_190 |   19_712_160 |   260_887_834_350 |  0.00756 % | PT75.742618054S
-//!    10 | 1_878_392_407_320 |            0 | 1_878_392_407_320 |  0.00000 % | PT66.465437165S
+//!     4 |            63_180 |    1_600_560 |         1_663_740 | 96.20253 % |  PT0.003547802S
+//!     5 |         4_696_380 |   20_925_216 |        25_621_596 | 81.67023 % |  PT0.050105706S
+//!     6 |       155_521_080 |  169_019_136 |       324_540_216 | 52.07957 % |  PT0.658883744S
+//!     7 |     2_808_519_480 |  668_697_120 |     3_477_216_600 | 19.23082 % |  PT7.795403335S
+//!     8 |    31_413_675_150 |  750_578_400 |    32_164_253_550 |  2.33358 % | PT37.613810149S
+//!     9 |   260_868_122_190 |   19_712_160 |   260_887_834_350 |  0.00756 % | PT70.994455511S
+//!    10 | 1_878_392_407_320 |            0 | 1_878_392_407_320 |  0.00000 % | PT67.419270885S
 //!
 //! Donald Knuth wrote two very efficient programs that find all the deals that contain no Sets
 //! (SETSET and SETSET-ALL here: <https://cs.stanford.edu/~uno/programs.html>). At some point
@@ -53,15 +53,15 @@
 
 #[macro_use] extern crate clap;
 extern crate core;
-extern crate num_cpus;
 #[macro_use] extern crate prettytable;
+extern crate rayon;
 extern crate time;
 
 use prettytable::Table;
 use prettytable::format::consts;
+use rayon::prelude::*;
 use std::ops::Range;
-use std::sync::mpsc;
-use std::{cmp, thread};
+use std::cmp;
 use time::{Duration, PreciseTime};
 
 use core::card::*;
@@ -91,31 +91,11 @@ struct Count {
     time: Duration
 }
 
-fn count_null_supersets(deal_size: usize, threads: usize) -> Count {
-    assert!(threads > 0);
-    assert!(deal_size >= SUPERSET_SIZE);
-
-    // initialize lookup table
-    build_lookup();
-
-    // launch threads
+fn count_null_supersets(deal_size: usize) -> Count {
     let start_time = PreciseTime::now();
-    let start_index = deal_size - 1;
-    let (tx, rx) = mpsc::channel();
-
-    for i in start_index..(start_index + threads) {
-        let tx = tx.clone();
-        thread::spawn(move || {
-            let zeroes = deal_hands(i, threads, deal_size);
-            tx.send(zeroes).unwrap();
-        });
-    }
-
-    // collate results
-    let mut sum = 0;
-    for _ in 0..threads {
-        sum += rx.recv().unwrap();
-    }
+    let sum = (deal_size - 1 .. 81).into_par_iter()
+        .map(|x| deal_hands(x, deal_size))
+        .sum();
 
     Count {
         no_supersets: sum,
@@ -124,14 +104,9 @@ fn count_null_supersets(deal_size: usize, threads: usize) -> Count {
     }
 }
 
-fn deal_hands(start: usize, step: usize, deal_size: usize) -> u64 {
+fn deal_hands(start: usize, deal_size: usize) -> u64 {
     // our deck of cards is really a deck of card indices
     let cards = (0..81).collect::<Vec<usize>>();
-
-    // start, start + step, start + 2*step, ...
-    let iter = (0..)
-        .map(|x| start + x * step)
-        .take_while(|&x| x < 81);
 
     let mut data = Combination {
         deck: cards,
@@ -139,11 +114,9 @@ fn deal_hands(start: usize, step: usize, deal_size: usize) -> u64 {
         null_count: 0
     };
 
-    for x in iter {
-        data.hand.push(data.deck[x]);
-        deal_another_card(&mut data, (deal_size - 2)..x);
-        data.hand.pop();
-    }
+    data.hand.push(data.deck[start]);
+    deal_another_card(&mut data, (deal_size - 2)..start);
+    data.hand.pop();
 
     data.null_count
 }
@@ -171,13 +144,13 @@ fn deal_another_card(data: &mut Combination, range: Range<usize>) {
     }
 }
 
-fn generate_table(num_threads: usize) {
+fn generate_table() {
     let mut table = Table::new();
     table.set_format(*consts::FORMAT_NO_BORDER_LINE_SEPARATOR);
     table.set_titles(row![r => "deal", "supersets", "no supersets", "total", "% without", "time"]);
 
     for deal in 4.. {
-        let count = count_null_supersets(deal, num_threads);
+        let count = count_null_supersets(deal);
 
         // calculate derivable stats
         let sets = count.combinations - count.no_supersets;
@@ -203,17 +176,17 @@ fn generate_table(num_threads: usize) {
 ////////////////////////////////////////////////////////////////////////////////
 
 fn main() {
-    let matches = clap_app!(count =>
-        (version: VERSION)
-        (about: "Finds all n-card deals that contain no SuperSets.")
-        (@arg THREADS: -t --threads +takes_value "Sets number of threads")
-    ).get_matches();
+    clap_app!(count =>
+              (version: VERSION)
+              (about: "Finds all n-card deals that contain no SuperSets."))
+        .get_matches();
 
-    let num_threads = value_t!(matches, "THREADS", usize).unwrap_or(num_cpus::get());
+    // initialize lookup table
+    build_lookup();
 
     println!("Finding all n-card deals that contain no SuperSets.");
     println!("This could take some time...\n");
-    generate_table(num_threads);
+    generate_table();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
