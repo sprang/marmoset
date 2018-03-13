@@ -51,9 +51,11 @@
 #![allow(unknown_lints)]
 #![allow(needless_range_loop)]
 
-#[macro_use] extern crate clap;
+#[macro_use]
+extern crate clap;
 extern crate core;
-#[macro_use] extern crate prettytable;
+#[macro_use]
+extern crate prettytable;
 extern crate rayon;
 extern crate time;
 
@@ -88,12 +90,13 @@ struct Count {
     /// Total possible combinations.
     combinations: u64,
     /// Duration of computation.
-    time: Duration
+    time: Duration,
 }
 
 fn count_null_supersets(deal_size: usize) -> Count {
     let start_time = PreciseTime::now();
-    let sum = (deal_size - 1 .. 81).into_par_iter()
+    let sum = (deal_size - 1..81)
+        .into_par_iter()
         .map(|x| deal_hands(x, deal_size))
         .sum();
 
@@ -111,7 +114,7 @@ fn deal_hands(start: usize, deal_size: usize) -> u64 {
     let mut data = Combination {
         deck: cards,
         hand: Vec::with_capacity(deal_size),
-        null_count: 0
+        null_count: 0,
     };
 
     data.hand.push(data.deck[start]);
@@ -127,7 +130,7 @@ fn deal_another_card(data: &mut Combination, range: Range<usize>) {
     for y in range {
         let next_card = data.deck[y];
 
-        if data.hand.len() >= (SUPERSET_SIZE-1) && contains_superset(&data.hand, next_card) {
+        if data.hand.len() >= (SUPERSET_SIZE - 1) && contains_superset(&data.hand, next_card) {
             // There's already at least one SuperSet, so we can skip this branch
             continue;
         }
