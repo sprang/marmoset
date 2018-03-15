@@ -14,7 +14,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use cairo::{Context, Rectangle};
-use gdk;
+use gdk::{self, EventMask};
 use gtk::prelude::*;
 use gtk::{Allocation, DrawingArea};
 use num_traits::ToPrimitive;
@@ -107,9 +107,9 @@ impl Controller {
 
     fn new_drawing_area() -> DrawingArea {
         let drawing_area = DrawingArea::new();
-        let event_mask = gdk::POINTER_MOTION_MASK
-            | gdk::BUTTON_PRESS_MASK | gdk::BUTTON_RELEASE_MASK
-            | gdk::KEY_PRESS_MASK | gdk::KEY_RELEASE_MASK;
+        let event_mask = EventMask::POINTER_MOTION_MASK
+            | EventMask::BUTTON_PRESS_MASK | EventMask::BUTTON_RELEASE_MASK
+            | EventMask::KEY_PRESS_MASK | EventMask::KEY_RELEASE_MASK;
 
         drawing_area.set_can_focus(true);
         drawing_area.add_events(event_mask.bits() as i32);

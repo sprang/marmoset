@@ -31,9 +31,9 @@ pub mod controller;
 pub mod game_state;
 pub mod rules;
 
-use gdk::{ModifierType, CONTROL_MASK, SHIFT_MASK};
+use gdk::ModifierType;
 use gdk_pixbuf::{Pixbuf, PixbufLoader};
-use gio::ApplicationExt;
+use gio::{ApplicationExt, ApplicationExtManual};
 use gtk::*;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -55,7 +55,7 @@ macro_rules! clone {
 fn main() {
     const APP_ID: &str = "org.nybble.marmoset";
 
-    match gtk::Application::new(APP_ID, gio::APPLICATION_FLAGS_NONE) {
+    match gtk::Application::new(APP_ID, gio::ApplicationFlags::FLAGS_NONE) {
         Ok(app) => {
             app.connect_activate(|app| init(app));
             app.run(&[]);
@@ -137,7 +137,7 @@ fn make_menu_item(mnemonic: &str, accel_group: &AccelGroup,
 {
     let item = MenuItem::new_with_mnemonic(mnemonic);
     for &key in keys.iter() {
-        item.add_accelerator("activate", accel_group, key as u32, modifier, ACCEL_VISIBLE);
+        item.add_accelerator("activate", accel_group, key as u32, modifier, AccelFlags::VISIBLE);
     }
     item
 }
@@ -150,9 +150,9 @@ fn build_game_menu(menu_data: MenuData) -> MenuItem {
     let (window, accel_group, controller) = menu_data;
 
     // create menu items
-    let new_game = make_menu_item("_New Game", accel_group, CONTROL_MASK, &['N']);
+    let new_game = make_menu_item("_New Game", accel_group, ModifierType::CONTROL_MASK, &['N']);
     let restart = MenuItem::new_with_mnemonic("_Restart Game");
-    let close = make_menu_item("_Close", accel_group, CONTROL_MASK, &['W']);
+    let close = make_menu_item("_Close", accel_group, ModifierType::CONTROL_MASK, &['W']);
 
     new_game.connect_activate({
         clone!(controller);
@@ -302,12 +302,12 @@ fn connect_undo_redo(controller: &Rc<RefCell<Controller>>, undo: &MenuItem, redo
 
 fn build_control_menu(menu_data: MenuData) -> MenuItem {
     let (window, accel_group, controller) = menu_data;
-    let ctrl_shift = CONTROL_MASK | SHIFT_MASK;
+    let ctrl_shift = ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK;
     let no_modifier = ModifierType::empty();
     let config = controller.borrow().config;
 
     // create menu items
-    let undo = make_menu_item("_Undo", accel_group, CONTROL_MASK, &['Z']);
+    let undo = make_menu_item("_Undo", accel_group, ModifierType::CONTROL_MASK, &['Z']);
     let redo = make_menu_item("_Redo", accel_group, ctrl_shift, &['Z']);
     let hint = make_menu_item("_Hint", accel_group, no_modifier, &['?', '/']);
     let deal_more = make_menu_item("_Deal More Cards", accel_group, no_modifier, &['+', '=']);
@@ -395,7 +395,7 @@ fn build_help_menu(window: &ApplicationWindow) -> MenuItem {
             a.set_program_name("Marmoset");
             a.set_logo(logo().as_ref());
             a.set_comments(COMMENT);
-            a.set_copyright("Copyright © 2017 Steve Sprang");
+            a.set_copyright("Copyright © 2017-18 Steve Sprang");
             a.set_license_type(License::Gpl30);
             a.set_license(LICENSE);
             a.set_website("https://github.com/sprang/marmoset");
