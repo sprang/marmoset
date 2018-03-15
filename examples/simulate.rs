@@ -42,23 +42,25 @@
 //! objects directly when initializing the `SETS` lookup table, and otherwise just
 //! works with the cards by index.
 
-#[macro_use] extern crate clap;
+#[macro_use]
+extern crate clap;
 extern crate core;
 extern crate num_cpus;
-#[macro_use] extern crate prettytable;
+#[macro_use]
+extern crate prettytable;
 extern crate rand;
 extern crate time;
 
 use prettytable::Table;
 use prettytable::format::consts;
-use rand::{Rng, thread_rng};
+use rand::{thread_rng, Rng};
 use std::cmp;
 use std::sync::mpsc;
 use std::thread;
 use time::PreciseTime;
 
 use core::card::*;
-use core::deck::{cards};
+use core::deck::cards;
 use core::pair_iter::PairIter;
 use core::shuffle::Shuffle;
 use core::utils::*;
@@ -79,7 +81,7 @@ struct Counts {
     /// Stuck hand.
     no_sets: [u64; MAX_DEAL],
     /// Game over.
-    remainder: [u64; MAX_DEAL]
+    remainder: [u64; MAX_DEAL],
 }
 
 impl Counts {
@@ -87,7 +89,7 @@ impl Counts {
         Counts {
             sets: [0; MAX_DEAL],
             no_sets: [0; MAX_DEAL],
-            remainder: [0; MAX_DEAL]
+            remainder: [0; MAX_DEAL],
         }
     }
 
@@ -108,12 +110,12 @@ impl Counts {
         table.set_format(*consts::FORMAT_NO_BORDER_LINE_SEPARATOR);
         table.set_titles(row![r => "hand", "sets", "no sets", "total", "ratio", "% with no sets"]);
 
-        let iter = self.sets.iter()
-            .zip(self.no_sets.iter())
-            .enumerate();
+        let iter = self.sets.iter().zip(self.no_sets.iter()).enumerate();
 
         for (hand_size, (&sets, &no_sets)) in iter {
-            if hand_size == 0 || no_sets == 0 { continue }
+            if hand_size == 0 || no_sets == 0 {
+                continue;
+            }
 
             let total_hands = sets + no_sets;
             // no sets as a percentage of all hands of this size
@@ -146,7 +148,9 @@ impl Counts {
         let num_games = self.num_simulated();
 
         for (hand_size, &count) in self.remainder.iter().enumerate() {
-            if count == 0 { continue }
+            if count == 0 {
+                continue;
+            }
 
             let percentage = (count as f64 / num_games as f64) * 100.0;
             table.add_row(row![r => &hand_size.to_string(),
@@ -163,7 +167,9 @@ impl Counts {
 ////////////////////////////////////////////////////////////////////////////////
 
 #[derive(Default, Clone)]
-pub struct IndexDeck { stock: Vec<usize> }
+pub struct IndexDeck {
+    stock: Vec<usize>,
+}
 
 // A deck of indices rather than cards. It didn't seem worth
 // generalizing `core::Deck` for the optimizations used in this
@@ -249,7 +255,7 @@ fn simulate_game(counts: &mut Counts) {
     let mut hand = deck.draw(INITIAL_DEAL);
 
     'game: loop {
-        if let Some((a,b,c)) = find_random_set(&hand) {
+        if let Some((a, b, c)) = find_random_set(&hand) {
             counts.sets[hand.len()] += 1;
 
             // remove the set
@@ -289,7 +295,9 @@ fn run_simulations(num_games: u64, num_threads: u64) {
 
         thread::spawn(move || {
             let mut counts = Counts::zero();
-            for _ in 0..num { simulate_game(&mut counts) }
+            for _ in 0..num {
+                simulate_game(&mut counts)
+            }
             tx.send(counts).unwrap();
         });
     }
@@ -313,8 +321,10 @@ fn run_simulations(num_games: u64, num_threads: u64) {
 ////////////////////////////////////////////////////////////////////////////////
 
 fn main() {
-    let games_help = &format!("Sets number of games to simulate (default: {})",
-                              pretty_print(NUM_GAMES));
+    let games_help = &format!(
+        "Sets number of games to simulate (default: {})",
+        pretty_print(NUM_GAMES)
+    );
 
     let matches = clap_app!(simulate =>
         (version: VERSION)
@@ -326,6 +336,9 @@ fn main() {
     let num_games = value_t!(matches, "GAMES", u64).unwrap_or(NUM_GAMES);
     let num_threads = value_t!(matches, "THREADS", u64).unwrap_or(num_cpus::get() as u64);
 
-    println!("Simulating {} games. This may take some time...", pretty_print(num_games));
+    println!(
+        "Simulating {} games. This may take some time...",
+        pretty_print(num_games)
+    );
     run_simulations(num_games, num_threads);
 }
