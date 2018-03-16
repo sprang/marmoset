@@ -14,7 +14,8 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 extern crate cairo;
-#[macro_use] extern crate clap;
+#[macro_use]
+extern crate clap;
 extern crate core;
 
 use cairo::{Context, Format, ImageSurface, Operator, Rectangle};
@@ -38,7 +39,7 @@ fn generate_card_images(path: &str, card_width: i32, border: i32,
         x: border as f64,
         y: border as f64,
         width: card_width as f64,
-        height: card_height as f64
+        height: card_height as f64,
     };
 
     // add space for the border on each edge
@@ -49,7 +50,8 @@ fn generate_card_images(path: &str, card_width: i32, border: i32,
     }
 
     // create the surface and context
-    let surface = ImageSurface::create(Format::ARgb32, ctx_width, ctx_height);
+    let surface = ImageSurface::create(Format::ARgb32, ctx_width, ctx_height)
+        .expect("Could not create surface.");
     let ctx = Context::new(&surface);
     if vertical {
         // adjust the transform to account for the vertical orientation
