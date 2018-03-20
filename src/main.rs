@@ -32,7 +32,7 @@ pub mod game_state;
 pub mod rules;
 
 use gdk::ModifierType;
-use gdk_pixbuf::{Pixbuf, PixbufLoader};
+use gdk_pixbuf::{Pixbuf, PixbufLoader, PixbufLoaderExt};
 use gio::{ApplicationExt, ApplicationExtManual};
 use gtk::*;
 use std::cell::RefCell;
@@ -373,7 +373,7 @@ fn logo_loader() -> Result<PixbufLoader, Error> {
     let data = include_bytes!("../resources/logo.png");
 
     let loader = PixbufLoader::new_with_type("png")?;
-    loader.loader_write(data)?;
+    loader.write(data)?;
     loader.close()?;
 
     Ok(loader)
