@@ -59,11 +59,8 @@ fn main() {
         Ok(app) => {
             app.connect_activate(|app| init(app));
             app.run(&[]);
-        },
-        Err(e) => {
-            println!("Failed to initialize GTK application: {:?}", e);
-            return;
         }
+        Err(e) => println!("Failed to initialize GTK application: {:?}", e)
     }
 }
 
