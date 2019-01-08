@@ -13,8 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#![allow(unknown_lints)]
-#![allow(needless_range_loop)]
+#![allow(clippy::needless_range_loop)]
 
 use crate::card::*;
 use self::Iteration::*;

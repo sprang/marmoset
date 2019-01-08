@@ -67,7 +67,7 @@ impl Controller {
     pub fn shared_with_config(config: Config) -> Rc<RefCell<Controller>> {
         let drawing_area = Controller::new_drawing_area();
         let controller = Controller {
-            config: config,
+            config,
             state: GameState::with_config(config),
             rules: config.rules(),
             selected: vec!(),
@@ -296,7 +296,7 @@ impl Controller {
     fn register_undo(&mut self, action_name: &'static str) {
         let item = UndoItem {
             state: self.state.clone(),
-            action_name: action_name
+            action_name
         };
         self.undo_stack.push(item);
         self.redo_stack.clear();
@@ -489,7 +489,7 @@ impl Controller {
         let tableau_aspect_ratio = tableau_width / tableau_height;
 
         // figure out the view aspect ratio
-        let (view_width, view_height) = (w as f64, h as f64);
+        let (view_width, view_height) = (f64::from(w), f64::from(h));
         let view_aspect_ratio = view_width / view_height;
 
         // now squeeze the tableau into the view

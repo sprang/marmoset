@@ -13,6 +13,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#![allow(clippy::cast_lossless)]
+
 use cairo::{Context, Rectangle};
 use crate::card::{Card, Color, Shading, Shape};
 use crate::geometry::RectangleExt;
@@ -43,8 +45,8 @@ pub enum ColorScheme {
 }
 
 impl ColorScheme {
-    pub fn card_color(&self, card: Card) -> (f64, f64, f64) {
-        let (r,g,b) = match *self {
+    pub fn card_color(self, card: Card) -> (f64, f64, f64) {
+        let (r,g,b) = match self {
             // This scheme is intended to be friendlier to those with
             // color vision deficiencies
             ColorScheme::CMYK => match card.color() {

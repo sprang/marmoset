@@ -42,7 +42,7 @@ impl Card {
     }
 
     /// Maps the card value back to the index from which it was derived.
-    pub fn index(&self) -> usize {
+    pub fn index(self) -> usize {
         let mut value = self.0;
         let mut result = value & 0xff;
 
@@ -77,16 +77,16 @@ impl Card {
     /// Extracts the byte corresponding to the given `Feature`. Since
     /// the bytes represent ternary digits, the returned value will
     /// always be in the interval [0,2].
-    fn feature(&self, feature: Feature) -> u8 {
+    fn feature(self, feature: Feature) -> u8 {
         (self.0 >> (feature as u32 * 8) & 0xff) as u8
     }
 
     /// Returns a shape count in the interval [1,3]
-    pub fn count(&self) -> u8 {
+    pub fn count(self) -> u8 {
         self.feature(Feature::Count) + 1
     }
 
-    pub fn shape(&self) -> Shape {
+    pub fn shape(self) -> Shape {
         match self.feature(Feature::Shape) {
             0 => Shape::Oval,
             1 => Shape::Squiggle,
@@ -94,7 +94,7 @@ impl Card {
         }
     }
 
-    pub fn color(&self) -> Color {
+    pub fn color(self) -> Color {
         match self.feature(Feature::Color) {
             0 => Color::A,
             1 => Color::B,
@@ -102,7 +102,7 @@ impl Card {
         }
     }
 
-    pub fn shading(&self) -> Shading {
+    pub fn shading(self) -> Shading {
         match self.feature(Feature::Shading) {
             0 => Shading::Solid,
             1 => Shading::Striped,
@@ -198,7 +198,7 @@ impl ToSuperSet for (Card, Card, Card, Card) {
             // Two pairs of cards form a SuperSet if and only if the
             // Set-completing card for each pair is the same
             if left.complete_set() == right.complete_set() {
-                let superset = SuperSet { left: left, right: right };
+                let superset = SuperSet { left, right };
                 return Some(superset);
             }
         }

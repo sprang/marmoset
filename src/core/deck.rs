@@ -243,7 +243,7 @@ mod tests {
         assert!(!hand.contains_set());
         assert!(!stock.contains_set());
 
-        let mut deck = Deck { stock: stock };
+        let mut deck = Deck { stock };
         match deck.fix_one_card(&hand) {
             None => panic!("Could not guarantee set!"),
             Some(mut draw) => {
@@ -266,7 +266,7 @@ mod tests {
         assert!(!hand.contains_set());
         assert!(!stock.contains_set());
 
-        let mut deck = Deck { stock: stock };
+        let mut deck = Deck { stock };
         match deck.fix_two_cards(&hand) {
             None => panic!("Could not guarantee set!"),
             Some(mut draw) => {
@@ -285,7 +285,7 @@ mod tests {
 
         let stock = [34, A, B, C, 64, 72].as_cards(); // three cards from the set in the stock
 
-        let mut deck = Deck { stock: stock };
+        let mut deck = Deck { stock };
         match deck.fix_three_cards() {
             None => panic!("Could not guarantee set!"),
             Some(mut draw) => {
