@@ -13,10 +13,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use card::*;
-use find::FindSets;
-use pair_iter::PairIter;
-use shuffle::Shuffle;
+use crate::card::*;
+use crate::find::FindSets;
+use crate::pair_iter::PairIter;
+use crate::shuffle::Shuffle;
 use std::cmp;
 
 pub const DECK_SIZE: usize = 81;
@@ -172,8 +172,8 @@ impl Deck {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use card::Card;
-    use find::{FindSets, FindSuperSets};
+    use crate::card::Card;
+    use crate::find::{FindSets, FindSuperSets};
 
     #[test]
     fn count_sets() {

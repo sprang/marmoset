@@ -38,8 +38,8 @@ use gtk::*;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use config::{Config, Deck, Variant};
-use controller::Controller;
+use crate::config::{Config, Deck, Variant};
+use crate::controller::Controller;
 use core::graphics::ColorScheme::{Classic, CMYK};
 
 /// A convenience type for passing data to menu building functions

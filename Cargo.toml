@@ -8,6 +8,7 @@ repository = "https://github.com/sprang/marmoset"
 readme = "README.md"
 keywords = ["game", "card", "set"]
 categories = ["games"]
+edition = "2018"
 
 [lib]
 path = "src/core/lib.rs"

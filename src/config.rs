@@ -20,7 +20,7 @@ use std::path::PathBuf;
 use std::{env, error, fmt, result};
 
 use core::graphics::ColorScheme;
-use rules::{self, Rules};
+use crate::rules::{self, Rules};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Variant { Set, SuperSet }

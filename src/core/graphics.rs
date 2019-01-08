@@ -14,8 +14,8 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use cairo::{Context, Rectangle};
-use card::{Card, Color, Shading, Shape};
-use geometry::RectangleExt;
+use crate::card::{Card, Color, Shading, Shape};
+use crate::geometry::RectangleExt;
 use rand::{Rng, thread_rng};
 use std::f64::consts::{PI, FRAC_PI_2};
 use std::f64;

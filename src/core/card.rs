@@ -264,8 +264,8 @@ impl<'a> CompleteSet for (&'a Card, &'a Card) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use deck::cards;
-    use pair_iter::PairIter;
+    use crate::deck::cards;
+    use crate::pair_iter::PairIter;
 
     #[test]
     fn check_card_conversions() {

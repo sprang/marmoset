@@ -16,7 +16,7 @@
 #![allow(unknown_lints)]
 #![allow(needless_range_loop)]
 
-use card::*;
+use crate::card::*;
 use self::Iteration::*;
 
 #[derive(PartialEq, Eq)]

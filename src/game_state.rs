@@ -13,12 +13,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use cell::{Cell, RenderData};
-use config::{self, Config};
+use crate::cell::{Cell, RenderData};
+use crate::config::{self, Config};
 use core::card::Card;
 use core::deck::Deck;
 use core::shuffle::Shuffle;
-use rules::Rules;
+use crate::rules::Rules;
 
 pub const COLUMNS: usize = 5;
 pub const ROWS: usize = 4;
@@ -75,7 +75,7 @@ impl GameState {
     pub fn take_cards(&mut self, cards: &[Card], rules: &Rules) {
         self.score += 1; // woot!
 
-        for (ix, mut cell) in self.tableau.iter_mut().enumerate().rev() {
+        for (ix, cell) in self.tableau.iter_mut().enumerate().rev() {
             if let Cell::Card(data) = *cell {
                 if cards.contains(&data.card) {
                     // reclaim hotkey and tableau index

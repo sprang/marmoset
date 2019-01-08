@@ -22,13 +22,13 @@ use std::cell::RefCell;
 use std::{f64, i32};
 use std::rc::Rc;
 
-use cell::Cell;
-use config::{self, Config};
+use crate::cell::Cell;
+use crate::config::{self, Config};
 use core::card::Card;
 use core::geometry::{RectangleExt, zero_rect};
 use core::graphics::{ContextExt, ColorScheme};
-use game_state::{GameState, ROWS, COLUMNS};
-use rules::Rules;
+use crate::game_state::{GameState, ROWS, COLUMNS};
+use crate::rules::Rules;
 
 const CARD_WIDTH: f64 = 3.5;
 const CARD_HEIGHT: f64 = 2.25;
