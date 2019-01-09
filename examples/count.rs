@@ -48,9 +48,6 @@
 //! SuperSet-free.
 //!
 
-#![allow(unknown_lints)]
-#![allow(needless_range_loop)]
-
 #[macro_use]
 extern crate clap;
 extern crate core;
@@ -239,6 +236,7 @@ fn is_superset(a: usize, b: usize, c: usize, d: usize) -> bool {
 
 /// This function assumes that `hand` does not already contain a
 /// SuperSet. It only tests combinations that include `extra`.
+#[allow(clippy::needless_range_loop)]
 fn contains_superset(hand: &[usize], extra: usize) -> bool {
     for a in 2..hand.len() {
         for b in 1..a {
