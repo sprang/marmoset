@@ -392,7 +392,7 @@ fn build_help_menu(window: &ApplicationWindow) -> MenuItem {
             a.set_program_name("Marmoset");
             a.set_logo(logo().as_ref());
             a.set_comments(COMMENT);
-            a.set_copyright("Copyright © 2017-18 Steve Sprang");
+            a.set_copyright("Copyright © 2017-19 Steve Sprang");
             a.set_license_type(License::Gpl30);
             a.set_license(LICENSE);
             a.set_website("https://github.com/sprang/marmoset");
