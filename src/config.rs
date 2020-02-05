@@ -48,59 +48,59 @@ pub struct Config {
 
 impl Config {
     pub fn new() -> Config {
-        Config {
-            variant: Variant::Set,
-            deck: Deck::Full,
-            tidy_layout: false,
-            color_scheme: ColorScheme::CMYK,
-            window_size: (1200, 700)
-        }
+	Config {
+	    variant: Variant::Set,
+	    deck: Deck::Full,
+	    tidy_layout: false,
+	    color_scheme: ColorScheme::CMYK,
+	    window_size: (1200, 700)
+	}
     }
 
-    pub fn rules(&self) -> Box<Rules> {
-        match self.variant {
-            Variant::Set => Box::new(rules::Set),
-            Variant::SuperSet => Box::new(rules::SuperSet)
-        }
+    pub fn rules(&self) -> Box<dyn Rules> {
+	match self.variant {
+	    Variant::Set => Box::new(rules::Set),
+	    Variant::SuperSet => Box::new(rules::SuperSet)
+	}
     }
 
     pub fn config_path() -> ConfigResult<PathBuf> {
-        let home_dir = env::var("HOME")?;
-        let path = PathBuf::from(&home_dir).join(".config/marmoset/");
+	let home_dir = env::var("HOME")?;
+	let path = PathBuf::from(&home_dir).join(".config/marmoset/");
 
-        if !path.exists() {
-            // make sure parent directories exist
-            fs::create_dir_all(&path)?;
-        }
+	if !path.exists() {
+	    // make sure parent directories exist
+	    fs::create_dir_all(&path)?;
+	}
 
-        Ok(path.join("marmoset.yml"))
+	Ok(path.join("marmoset.yml"))
     }
 
     pub fn load() -> Config {
-        let mut serialized = String::new();
+	let mut serialized = String::new();
 
-        Config::config_path()
-            .and_then(|path| File::open(&path)
-                      .map_err(ConfigError::Io))
-            .and_then(|mut file| file.read_to_string(&mut serialized)
-                      .map_err(ConfigError::Io))
-            .and_then(|_| serde_yaml::from_str(&serialized)
-                      .map_err(ConfigError::Yaml))
-            .unwrap_or_default()
+	Config::config_path()
+	    .and_then(|path| File::open(&path)
+		      .map_err(ConfigError::Io))
+	    .and_then(|mut file| file.read_to_string(&mut serialized)
+		      .map_err(ConfigError::Io))
+	    .and_then(|_| serde_yaml::from_str(&serialized)
+		      .map_err(ConfigError::Yaml))
+	    .unwrap_or_default()
     }
 
     pub fn save(&self) {
-        let serialized = serde_yaml::to_string(&self).unwrap();
+	let serialized = serde_yaml::to_string(&self).unwrap();
 
-        Config::config_path()
-            .and_then(|path| File::create(&path)
-                      .map_err(ConfigError::Io))
-            .and_then(|mut file| file.write_all(serialized.as_bytes())
-                      .map_err(ConfigError::Io))
-            .unwrap_or_else(|err| {
-                println!("Could not save app settings.");
-                println!("{}", err);
-            });
+	Config::config_path()
+	    .and_then(|path| File::create(&path)
+		      .map_err(ConfigError::Io))
+	    .and_then(|mut file| file.write_all(serialized.as_bytes())
+		      .map_err(ConfigError::Io))
+	    .unwrap_or_else(|err| {
+		println!("Could not save app settings.");
+		println!("{}", err);
+	    });
     }
 }
 
@@ -111,10 +111,10 @@ impl Config {
 /// Create setter methods that automatically save the config.
 macro_rules! make_setter {
     ($name:ident, $field:ident: $t:ty) => {
-        pub fn $name(&mut self, $field: $t) {
-            self.$field = $field;
-            self.save();
-        }
+	pub fn $name(&mut self, $field: $t) {
+	    self.$field = $field;
+	    self.save();
+	}
     }
 }
 
@@ -132,7 +132,7 @@ impl Config {
 
 impl Default for Config {
     fn default() -> Self {
-        Self::new()
+	Self::new()
     }
 }
 
@@ -155,14 +155,14 @@ pub type ConfigResult<T> = result::Result<T, ConfigError>;
 
 impl fmt::Display for ConfigError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            ConfigError::NoHomeDir(ref err) =>
-                write!(f, "Could not find $HOME: {}", err),
-            ConfigError::Io(ref err) =>
-                write!(f, "Config IO error: {}", err),
-            ConfigError::Yaml(ref err) =>
-                write!(f, "Config parse error: {:?}", err),
-        }
+	match *self {
+	    ConfigError::NoHomeDir(ref err) =>
+		write!(f, "Could not find $HOME: {}", err),
+	    ConfigError::Io(ref err) =>
+		write!(f, "Config IO error: {}", err),
+	    ConfigError::Yaml(ref err) =>
+		write!(f, "Config parse error: {:?}", err),
+	}
     }
 }
 
@@ -172,19 +172,19 @@ impl fmt::Display for ConfigError {
 
 impl error::Error for ConfigError {
     fn description(&self) -> &str {
-        match *self {
-            ConfigError::NoHomeDir(ref err) => err.description(),
-            ConfigError::Io(ref err) => err.description(),
-            ConfigError::Yaml(ref err) => err.description(),
-        }
+	match *self {
+	    ConfigError::NoHomeDir(ref err) => err.description(),
+	    ConfigError::Io(ref err) => err.description(),
+	    ConfigError::Yaml(ref err) => err.description(),
+	}
     }
 
-    fn cause(&self) -> Option<&error::Error> {
-        match *self {
-            ConfigError::NoHomeDir(ref err) => Some(err),
-            ConfigError::Io(ref err) => Some(err),
-            ConfigError::Yaml(ref err) => Some(err),
-        }
+    fn cause(&self) -> Option<&dyn error::Error> {
+	match *self {
+	    ConfigError::NoHomeDir(ref err) => Some(err),
+	    ConfigError::Io(ref err) => Some(err),
+	    ConfigError::Yaml(ref err) => Some(err),
+	}
     }
 }
 
@@ -194,18 +194,18 @@ impl error::Error for ConfigError {
 
 impl From<env::VarError> for ConfigError {
     fn from(err: env::VarError) -> ConfigError {
-        ConfigError::NoHomeDir(err)
+	ConfigError::NoHomeDir(err)
     }
 }
 
 impl From<io::Error> for ConfigError {
     fn from(err: io::Error) -> ConfigError {
-        ConfigError::Io(err)
+	ConfigError::Io(err)
     }
 }
 
 impl From<serde_yaml::Error> for ConfigError {
     fn from(err: serde_yaml::Error) -> ConfigError {
-        ConfigError::Yaml(err)
+	ConfigError::Yaml(err)
     }
 }
