@@ -50,7 +50,7 @@ version = "0.8.0"
 features = ["v3_18"]
 
 [dependencies.gio]
-version = ""
+version = "0.8.0"
 features = ["v2_44"]
 
 [dependencies.cairo-rs]
