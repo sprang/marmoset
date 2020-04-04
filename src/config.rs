@@ -171,14 +171,6 @@ impl fmt::Display for ConfigError {
 ////////////////////////////////////////////////////////////////////////////////
 
 impl error::Error for ConfigError {
-    fn description(&self) -> &str {
-	match *self {
-	    ConfigError::NoHomeDir(ref err) => err.description(),
-	    ConfigError::Io(ref err) => err.description(),
-	    ConfigError::Yaml(ref err) => err.description(),
-	}
-    }
-
     fn cause(&self) -> Option<&dyn error::Error> {
 	match *self {
 	    ConfigError::NoHomeDir(ref err) => Some(err),
