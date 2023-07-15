@@ -19,7 +19,7 @@
 //! https://en.wikipedia.org/wiki/Fisher-Yates_shuffle
 //!
 
-use rand::{Rng, thread_rng};
+use rand::{thread_rng, Rng};
 
 pub trait Shuffle {
     fn shuffle(&mut self);
@@ -31,7 +31,7 @@ impl<T> Shuffle for [T] {
         let n = self.len();
 
         for i in (1..n).rev() {
-            let j = rng.gen_range(0, i+1);
+            let j = rng.gen_range(0..i + 1);
             self.swap(i, j);
         }
     }

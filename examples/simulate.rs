@@ -51,8 +51,8 @@ extern crate prettytable;
 extern crate rand;
 extern crate time;
 
-use prettytable::Table;
 use prettytable::format::consts;
+use prettytable::Table;
 use rand::{thread_rng, Rng};
 use std::cmp;
 use std::sync::mpsc;
@@ -241,7 +241,7 @@ fn find_random_set(hand: &[usize]) -> Option<(usize, usize, usize)> {
         None
     } else {
         let mut rng = thread_rng();
-        let random_ix = rng.gen_range(0, sets.len());
+        let random_ix = rng.gen_range(0..sets.len());
         Some(sets[random_ix])
     }
 }
@@ -331,7 +331,8 @@ fn main() {
         (about: "Gather statistics for simulated games of SET.")
         (@arg GAMES: -g --games +takes_value games_help)
         (@arg THREADS: -t --threads +takes_value "Sets number of threads")
-    ).get_matches();
+    )
+    .get_matches();
 
     let num_games = value_t!(matches, "GAMES", u64).unwrap_or(NUM_GAMES);
     let num_threads = value_t!(matches, "THREADS", u64).unwrap_or(num_cpus::get() as u64);

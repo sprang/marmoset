@@ -16,35 +16,39 @@
 //! Tableau cells.
 
 use cairo::{Matrix, Rectangle};
-use rand::{Rng, thread_rng};
 use core::card::Card;
 use core::geometry::*;
+use rand::{thread_rng, Rng};
 
 #[derive(Clone, Copy)]
 pub enum Cell {
     Deck,
     Score,
     Placeholder,
-    Card(RenderData)
+    Card(RenderData),
 }
 
 impl Cell {
     /// Convenience method for extracting `Card`
     pub fn card(&self) -> Option<Card> {
-	if let Cell::Card(data) = *self {
-	    Some(data.card)
-	} else {
-	    None
-	}
+        if let Cell::Card(data) = *self {
+            Some(data.card)
+        } else {
+            None
+        }
     }
 
     /// Convenience method for matching a hotkey to a `Card`
     pub fn card_for_key(&self, hotkey: char) -> Option<Card> {
-	if let Cell::Card(data) = *self {
-	    if data.hotkey == hotkey { Some(data.card) } else { None }
-	} else {
-	    None
-	}
+        if let Cell::Card(data) = *self {
+            if data.hotkey == hotkey {
+                Some(data.card)
+            } else {
+                None
+            }
+        } else {
+            None
+        }
     }
 }
 
@@ -58,7 +62,7 @@ const MAX_ROTATION: f64 = 3.0;
 /// to the nearest fifth of a degree, and converted to radians.
 fn random_angle(max: f64) -> f64 {
     let mut rng = thread_rng();
-    let angle = rng.gen_range(0.0, max * 2.0) - max;
+    let angle = rng.gen_range(0.0..max * 2.0) - max;
     // round to nearest fifth of a degree
     let degrees = f64::round(angle * 5.) / 5.;
     degrees.to_radians()
@@ -73,24 +77,28 @@ pub struct RenderData {
 
 impl RenderData {
     pub fn with_card_and_hotkey(card: Card, hotkey: char) -> RenderData {
-	let angle = random_angle(MAX_ROTATION);
-	RenderData { card, hotkey, angle }
+        let angle = random_angle(MAX_ROTATION);
+        RenderData {
+            card,
+            hotkey,
+            angle,
+        }
     }
 
     pub fn point_in_rect(&self, x: f64, y: f64, rect: Rectangle, transform: bool) -> bool {
-	if transform {
-	    let (cx, cy) = rect.center();
-	    let mut transform = Matrix::identity();
+        if transform {
+            let (cx, cy) = rect.center();
+            let mut transform = Matrix::identity();
 
-	    transform.translate(cx, cy);
-	    transform.rotate(self.angle);
-	    transform.translate(-cx, -cy);
-	    transform.invert();
+            transform.translate(cx, cy);
+            transform.rotate(self.angle);
+            transform.translate(-cx, -cy);
+            transform.invert();
 
-	    let (tx, ty) = transform.transform_point(x, y);
-	    rect.contains_point(tx, ty)
-	} else {
-	    rect.contains_point(x, y)
-	}
+            let (tx, ty) = transform.transform_point(x, y);
+            rect.contains_point(tx, ty)
+        } else {
+            rect.contains_point(x, y)
+        }
     }
 }

@@ -15,12 +15,12 @@
 
 #![allow(clippy::cast_lossless)]
 
-use cairo::{Context, Rectangle};
 use crate::card::{Card, Color, Shading, Shape};
 use crate::geometry::RectangleExt;
-use rand::{Rng, thread_rng};
-use std::f64::consts::{PI, FRAC_PI_2};
+use cairo::{Context, Rectangle};
+use rand::{thread_rng, Rng};
 use std::f64;
+use std::f64::consts::{FRAC_PI_2, PI};
 
 const CORNER_RADIUS_PERCENTAGE: f64 = 0.08;
 const BADGE_BACKGROUND_GRAY: f64 = 0.68;
@@ -46,7 +46,7 @@ pub enum ColorScheme {
 
 impl ColorScheme {
     pub fn card_color(self, card: Card) -> (f64, f64, f64) {
-        let (r,g,b) = match self {
+        let (r, g, b) = match self {
             // This scheme is intended to be friendlier to those with
             // color vision deficiencies
             ColorScheme::CMYK => match card.color() {
@@ -72,7 +72,9 @@ impl ColorScheme {
 
 pub trait ContextExt {
     /// Perform transform operations around a pivot point.
-    fn with_pivot<F>(&self, pivot: (f64, f64), f: F) where F: Fn() -> ();
+    fn with_pivot<F>(&self, pivot: (f64, f64), f: F)
+    where
+        F: Fn() -> ();
 
     fn set_source_gray(&self, g: f64);
     fn set_source_random_rgb(&self);
@@ -89,7 +91,10 @@ pub trait ContextExt {
 }
 
 impl ContextExt for Context {
-    fn with_pivot<F>(&self, (px, py): (f64, f64), f: F) where F: Fn() -> () {
+    fn with_pivot<F>(&self, (px, py): (f64, f64), f: F)
+    where
+        F: Fn() -> (),
+    {
         self.translate(px, py);
         f();
         self.translate(-px, -py);
@@ -101,15 +106,20 @@ impl ContextExt for Context {
 
     fn set_source_random_rgb(&self) {
         let mut rng = thread_rng();
-        let r = rng.gen_range(0.0, 1.0);
-        let g = rng.gen_range(0.0, 1.0);
-        let b = rng.gen_range(0.0, 1.0);
+        let r = rng.gen_range(0.0..1.0);
+        let g = rng.gen_range(0.0..1.0);
+        let b = rng.gen_range(0.0..1.0);
 
         self.set_source_rgb(r, g, b);
     }
 
     fn rounded_rect(&self, rect: Rectangle, radius: f64) {
-        let Rectangle {x, y, width, height} = rect;
+        let Rectangle {
+            x,
+            y,
+            width,
+            height,
+        } = rect;
         let r = f64::min(radius, f64::min(width / 2., height / 2.));
 
         self.new_sub_path();
@@ -121,7 +131,12 @@ impl ContextExt for Context {
     }
 
     fn diamond_in_rect(&self, rect: Rectangle) {
-        let Rectangle {x, y, width, height} = rect;
+        let Rectangle {
+            x,
+            y,
+            width,
+            height,
+        } = rect;
         let half_width = width / 2.;
         let half_height = height / 2.;
 
@@ -134,42 +149,80 @@ impl ContextExt for Context {
     }
 
     fn squiggle_in_rect(&self, rect: Rectangle) {
-        let Rectangle {x, y, width, height} = rect;
+        let Rectangle {
+            x,
+            y,
+            width,
+            height,
+        } = rect;
 
         self.new_sub_path();
         self.move_to(x + width / 3., y);
 
-        self.curve_to(x + width * 4. / 5., y,
-                      x + width, y + height / 6.,
-                      x + width, y + height / 3.);
+        self.curve_to(
+            x + width * 4. / 5.,
+            y,
+            x + width,
+            y + height / 6.,
+            x + width,
+            y + height / 3.,
+        );
 
-        self.curve_to(x + width, y + height / 2.,
-                      x + width * 5. / 6., y + height / 2.,
-                      x + width * 5. / 6., y + height * 2. / 3.);
+        self.curve_to(
+            x + width,
+            y + height / 2.,
+            x + width * 5. / 6.,
+            y + height / 2.,
+            x + width * 5. / 6.,
+            y + height * 2. / 3.,
+        );
 
-        self.curve_to(x + width * 5. / 6., y + height * 5. / 6.,
-                      x + width, y + height * 5. / 6.,
-                      x + width, y + height * 11. / 12.);
+        self.curve_to(
+            x + width * 5. / 6.,
+            y + height * 5. / 6.,
+            x + width,
+            y + height * 5. / 6.,
+            x + width,
+            y + height * 11. / 12.,
+        );
 
-        self.curve_to(x + width, y + height * 23. / 24.,
-                      x + width * 5. / 6., y + height,
-                      x + width * 2. / 3., y + height);
+        self.curve_to(
+            x + width,
+            y + height * 23. / 24.,
+            x + width * 5. / 6.,
+            y + height,
+            x + width * 2. / 3.,
+            y + height,
+        );
 
-        self.curve_to(x + width / 5., y + height,
-                      x, y + height * 5. / 6.,
-                      x, y + height * 2. / 3.);
+        self.curve_to(
+            x + width / 5.,
+            y + height,
+            x,
+            y + height * 5. / 6.,
+            x,
+            y + height * 2. / 3.,
+        );
 
-        self.curve_to(x, y + height / 2.,
-                      x + width / 6., y + height / 2.,
-                      x + width / 6., y + height / 3.);
+        self.curve_to(
+            x,
+            y + height / 2.,
+            x + width / 6.,
+            y + height / 2.,
+            x + width / 6.,
+            y + height / 3.,
+        );
 
-        self.curve_to(x + width / 6., y + height / 6.,
-                      x, y + height / 6.,
-                      x, y + height / 12.);
+        self.curve_to(
+            x + width / 6.,
+            y + height / 6.,
+            x,
+            y + height / 6.,
+            x,
+            y + height / 12.,
+        );
 
-        self.curve_to(x, y + height / 24.,
-                      x + width / 6., y,
-                      x + width / 3., y);
+        self.curve_to(x, y + height / 24., x + width / 6., y, x + width / 3., y);
 
         self.close_path();
     }
@@ -184,8 +237,9 @@ impl ContextExt for Context {
             x: rect.x,
             y: rect.y,
             width: rect.width,
-            height: badge_height
-        }.inset(padding, padding / 8.);
+            height: badge_height,
+        }
+        .inset(padding, padding / 8.);
 
         // draw badge background
         self.set_source_gray(BADGE_BACKGROUND_GRAY);
@@ -243,7 +297,12 @@ impl ContextExt for Context {
     }
 
     fn draw_card(&self, card: Card, rect: Rectangle, label: Option<&str>, scheme: ColorScheme) {
-        let Rectangle { x, y, width, height } = rect;
+        let Rectangle {
+            x,
+            y,
+            width,
+            height,
+        } = rect;
         // render the background
         self.draw_card_background(rect, label, 1.0);
 
@@ -263,7 +322,7 @@ impl ContextExt for Context {
             x: x + horizontal_margin,
             y: y + vertical_margin,
             width: shape_width,
-            height: shape_height
+            height: shape_height,
         };
 
         // add the shapes to the context
@@ -271,7 +330,7 @@ impl ContextExt for Context {
             match card.shape() {
                 Shape::Oval => self.rounded_rect(shape_rect, f64::INFINITY),
                 Shape::Squiggle => self.squiggle_in_rect(shape_rect),
-                Shape::Diamond => self.diamond_in_rect(shape_rect)
+                Shape::Diamond => self.diamond_in_rect(shape_rect),
             }
             shape_rect = shape_rect.offset(shape_width + spacing, 0.);
         }
