@@ -17,7 +17,7 @@
 
 use crate::card::{Card, Color, Shading, Shape};
 use crate::geometry::RectangleExt;
-use cairo::{Context, Rectangle};
+use cairo::{Context, Error, Rectangle};
 use rand::{thread_rng, Rng};
 use std::f64;
 use std::f64::consts::{FRAC_PI_2, PI};
@@ -83,11 +83,22 @@ pub trait ContextExt {
     fn diamond_in_rect(&self, rect: Rectangle);
     fn squiggle_in_rect(&self, rect: Rectangle);
 
-    fn draw_badge(&self, rect: Rectangle, count: usize, label: &str);
-    fn draw_card_background(&self, rect: Rectangle, label: Option<&str>, gray: f64);
-    fn draw_card_placeholder(&self, rect: Rectangle);
-    fn draw_card_selection(&self, rect: Rectangle);
-    fn draw_card(&self, card: Card, rect: Rectangle, label: Option<&str>, scheme: ColorScheme);
+    fn draw_badge(&self, rect: Rectangle, count: usize, label: &str) -> Result<(), Error>;
+    fn draw_card_background(
+        &self,
+        rect: Rectangle,
+        label: Option<&str>,
+        gray: f64,
+    ) -> Result<(), Error>;
+    fn draw_card_placeholder(&self, rect: Rectangle) -> Result<(), Error>;
+    fn draw_card_selection(&self, rect: Rectangle) -> Result<(), Error>;
+    fn draw_card(
+        &self,
+        card: Card,
+        rect: Rectangle,
+        label: Option<&str>,
+        scheme: ColorScheme,
+    ) -> Result<(), Error>;
 }
 
 impl ContextExt for Context {
@@ -227,7 +238,7 @@ impl ContextExt for Context {
         self.close_path();
     }
 
-    fn draw_badge(&self, rect: Rectangle, count: usize, label: &str) {
+    fn draw_badge(&self, rect: Rectangle, count: usize, label: &str) -> Result<(), Error> {
         let badge_height = rect.height * (2. / 3.);
         let label_height = rect.height - badge_height;
         let count_string = count.to_string();
@@ -244,48 +255,56 @@ impl ContextExt for Context {
         // draw badge background
         self.set_source_gray(BADGE_BACKGROUND_GRAY);
         self.rounded_rect(badge_rect.round(), f64::INFINITY);
-        self.fill();
+        self.fill()?;
 
         // draw the label (same gray as badge background)
         self.set_font_size(label_height * 0.9);
-        let extents = self.text_extents(label);
+        let extents = self.text_extents(label)?;
         let x = rect.x + (rect.width - extents.width) / 2.;
         let y = rect.max_y() - (label_height - extents.height) / 3.;
 
         self.move_to(x, y);
-        self.show_text(label);
+        self.show_text(label)?;
 
         // draw count
         self.set_font_size(badge_height * 0.75);
-        let extents = self.text_extents(&count_string);
+        let extents = self.text_extents(&count_string)?;
         let x = rect.x + (rect.width - extents.width) / 2. - extents.x_bearing;
         let y = badge_rect.max_y() - (badge_rect.height - extents.height) / 2.;
 
         self.move_to(x, y);
         self.set_source_gray(TABLEAU_BACKGROUND_GRAY);
-        self.show_text(&count_string);
+        self.show_text(&count_string)?;
+        Ok(())
     }
 
-    fn draw_card_background(&self, rect: Rectangle, label: Option<&str>, gray: f64) {
+    fn draw_card_background(
+        &self,
+        rect: Rectangle,
+        label: Option<&str>,
+        gray: f64,
+    ) -> Result<(), Error> {
         let corner_radius = card_corner_radius(rect);
         self.rounded_rect(rect, corner_radius);
         self.set_source_gray(gray);
-        self.fill();
+        self.fill()?;
 
         if let Some(text) = label {
             let font_size = f64::min(rect.height * 0.15, 24.);
             self.set_font_size(font_size);
             self.move_to(rect.x + corner_radius, rect.max_y() - corner_radius);
             self.set_source_gray(CARD_LABEL_GRAY);
-            self.show_text(text);
+            self.show_text(text)?;
         }
+
+        Ok(())
     }
 
-    fn draw_card_placeholder(&self, rect: Rectangle) {
-        self.draw_card_background(rect, None, PLACEHOLDER_GRAY);
+    fn draw_card_placeholder(&self, rect: Rectangle) -> Result<(), Error> {
+        self.draw_card_background(rect, None, PLACEHOLDER_GRAY)
     }
 
-    fn draw_card_selection(&self, rect: Rectangle) {
+    fn draw_card_selection(&self, rect: Rectangle) -> Result<(), Error> {
         let Rectangle { height, .. } = rect;
         let corner_radius = card_corner_radius(rect);
         let selection_width = (height * 0.035).round() * 2.;
@@ -293,10 +312,17 @@ impl ContextExt for Context {
         self.rounded_rect(rect, corner_radius);
         self.set_source_gray(0.);
         self.set_line_width(selection_width);
-        self.stroke();
+        self.stroke()?;
+        Ok(())
     }
 
-    fn draw_card(&self, card: Card, rect: Rectangle, label: Option<&str>, scheme: ColorScheme) {
+    fn draw_card(
+        &self,
+        card: Card,
+        rect: Rectangle,
+        label: Option<&str>,
+        scheme: ColorScheme,
+    ) -> Result<(), Error> {
         let Rectangle {
             x,
             y,
@@ -304,7 +330,7 @@ impl ContextExt for Context {
             height,
         } = rect;
         // render the background
-        self.draw_card_background(rect, label, 1.0);
+        self.draw_card_background(rect, label, 1.0)?;
 
         // calculate shape bounds and margins
         let vertical_margin = 0.15 * height;
@@ -344,25 +370,25 @@ impl ContextExt for Context {
 
         // finally, do the rendering based on the shading
         match card.shading() {
-            Shading::Solid => self.fill(),
+            Shading::Solid => self.fill()?,
             Shading::Outlined => {
                 // clip to the path so that the stroked shape has the
                 // same footprint as the filled shape
                 self.clip_preserve();
                 // double the width since half the stroke is clipped away
                 self.set_line_width(stroke_width * 2.);
-                self.stroke();
+                self.stroke()?;
                 self.reset_clip();
             }
             Shading::Striped => {
                 // a translucent fill is more attractive than stripes
                 self.set_source_rgba(r, g, b, MOCK_STRIPE_TRANSLUCENCY);
-                self.fill_preserve();
+                self.fill_preserve()?;
 
                 // draw a white band between the stroke and the translucent fill
                 self.set_source_gray(1.0);
                 self.set_line_width(stroke_width * 3.);
-                self.stroke_preserve();
+                self.stroke_preserve()?;
 
                 // draw the outside stroke in the card color
                 self.set_source_rgb(r, g, b);
@@ -370,9 +396,10 @@ impl ContextExt for Context {
                 // clip to the path so that the stroked shape has the
                 // same footprint as the filled shape
                 self.clip_preserve();
-                self.stroke();
+                self.stroke()?;
                 self.reset_clip();
             }
         }
+        Ok(())
     }
 }
