@@ -32,9 +32,9 @@ name = "genpng"
 
 [dependencies]
 clap = "4.4"
-gdk = "0.16"
-gdk-pixbuf = "0.16"
-glib = "0.16"
+gdk = "0.17"
+gdk-pixbuf = "0.17"
+glib = "0.17"
 num-traits = "0.2"
 num_cpus = "1.12"
 prettytable-rs = "0.10"
@@ -46,11 +46,11 @@ serde_yaml = "0.9"
 time = "0.3"
 
 [dependencies.gtk]
-version = "0.16"
+version = "0.17"
 
 [dependencies.gio]
-version = "0.16"
+version = "0.17"
 
 [dependencies.cairo-rs]
-version = "0.16"
+version = "0.17"
 features = ["png"]
