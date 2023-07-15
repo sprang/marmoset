@@ -488,7 +488,7 @@ fn span(n: usize, item: f64, spacing: f64) -> f64 {
 
 impl Controller {
     fn layout(&mut self, _widget: &DrawingArea, allocation: &Allocation) {
-        let (w, h) = (allocation.width, allocation.height);
+        let (w, h) = (allocation.width(), allocation.height());
 
         // figure out the tableau aspect ratio
         let spacing_percentage = 0.15;
