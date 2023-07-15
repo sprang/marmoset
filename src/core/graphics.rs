@@ -30,8 +30,8 @@ const TABLEAU_BACKGROUND_GRAY: f64 = 0.8;
 const MOCK_STRIPE_TRANSLUCENCY: f64 = 0.4;
 
 #[inline]
-pub fn card_corner_radius(Rectangle { height, .. }: Rectangle) -> f64 {
-    CORNER_RADIUS_PERCENTAGE * height
+pub fn card_corner_radius(rect: Rectangle) -> f64 {
+    CORNER_RADIUS_PERCENTAGE * rect.height()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -125,12 +125,10 @@ impl ContextExt for Context {
     }
 
     fn rounded_rect(&self, rect: Rectangle, radius: f64) {
-        let Rectangle {
-            x,
-            y,
-            width,
-            height,
-        } = rect;
+        let x = rect.x();
+        let y = rect.y();
+        let width = rect.width();
+        let height = rect.height();
         let r = f64::min(radius, f64::min(width / 2., height / 2.));
 
         self.new_sub_path();
@@ -142,12 +140,10 @@ impl ContextExt for Context {
     }
 
     fn diamond_in_rect(&self, rect: Rectangle) {
-        let Rectangle {
-            x,
-            y,
-            width,
-            height,
-        } = rect;
+        let x = rect.x();
+        let y = rect.y();
+        let width = rect.width();
+        let height = rect.height();
         let half_width = width / 2.;
         let half_height = height / 2.;
 
@@ -160,12 +156,10 @@ impl ContextExt for Context {
     }
 
     fn squiggle_in_rect(&self, rect: Rectangle) {
-        let Rectangle {
-            x,
-            y,
-            width,
-            height,
-        } = rect;
+        let x = rect.x();
+        let y = rect.y();
+        let width = rect.width();
+        let height = rect.height();
 
         self.new_sub_path();
         self.move_to(x + width / 3., y);
@@ -239,18 +233,14 @@ impl ContextExt for Context {
     }
 
     fn draw_badge(&self, rect: Rectangle, count: usize, label: &str) -> Result<(), Error> {
-        let badge_height = rect.height * (2. / 3.);
-        let label_height = rect.height - badge_height;
+        let badge_height = rect.height() * (2. / 3.);
+        let label_height = rect.height() - badge_height;
         let count_string = count.to_string();
 
-        let padding = rect.width * 0.2;
-        let badge_rect = Rectangle {
-            x: rect.x,
-            y: rect.y,
-            width: rect.width,
-            height: badge_height,
-        }
-        .inset(padding, padding / 8.);
+        let padding = rect.width() * 0.2;
+
+        let badge_rect = Rectangle::new(rect.x(), rect.y(), rect.width(), badge_height)
+            .inset(padding, padding / 8.);
 
         // draw badge background
         self.set_source_gray(BADGE_BACKGROUND_GRAY);
@@ -260,8 +250,8 @@ impl ContextExt for Context {
         // draw the label (same gray as badge background)
         self.set_font_size(label_height * 0.9);
         let extents = self.text_extents(label)?;
-        let x = rect.x + (rect.width - extents.width) / 2.;
-        let y = rect.max_y() - (label_height - extents.height) / 3.;
+        let x = rect.x() + (rect.width() - extents.width()) / 2.;
+        let y = rect.max_y() - (label_height - extents.height()) / 3.;
 
         self.move_to(x, y);
         self.show_text(label)?;
@@ -269,8 +259,8 @@ impl ContextExt for Context {
         // draw count
         self.set_font_size(badge_height * 0.75);
         let extents = self.text_extents(&count_string)?;
-        let x = rect.x + (rect.width - extents.width) / 2. - extents.x_bearing;
-        let y = badge_rect.max_y() - (badge_rect.height - extents.height) / 2.;
+        let x = rect.x() + (rect.width() - extents.width()) / 2. - extents.x_bearing();
+        let y = badge_rect.max_y() - (badge_rect.height() - extents.height()) / 2.;
 
         self.move_to(x, y);
         self.set_source_gray(TABLEAU_BACKGROUND_GRAY);
@@ -290,9 +280,9 @@ impl ContextExt for Context {
         self.fill()?;
 
         if let Some(text) = label {
-            let font_size = f64::min(rect.height * 0.15, 24.);
+            let font_size = f64::min(rect.height() * 0.15, 24.);
             self.set_font_size(font_size);
-            self.move_to(rect.x + corner_radius, rect.max_y() - corner_radius);
+            self.move_to(rect.x() + corner_radius, rect.max_y() - corner_radius);
             self.set_source_gray(CARD_LABEL_GRAY);
             self.show_text(text)?;
         }
@@ -305,7 +295,7 @@ impl ContextExt for Context {
     }
 
     fn draw_card_selection(&self, rect: Rectangle) -> Result<(), Error> {
-        let Rectangle { height, .. } = rect;
+        let height = rect.height();
         let corner_radius = card_corner_radius(rect);
         let selection_width = (height * 0.035).round() * 2.;
 
@@ -323,12 +313,10 @@ impl ContextExt for Context {
         label: Option<&str>,
         scheme: ColorScheme,
     ) -> Result<(), Error> {
-        let Rectangle {
-            x,
-            y,
-            width,
-            height,
-        } = rect;
+        let x = rect.x();
+        let y = rect.y();
+        let width = rect.width();
+        let height = rect.height();
         // render the background
         self.draw_card_background(rect, label, 1.0)?;
 
@@ -344,12 +332,12 @@ impl ContextExt for Context {
         let horizontal_margin = (width - shape_extent) / 2.;
 
         // bounds of a single shape
-        let mut shape_rect = Rectangle {
-            x: x + horizontal_margin,
-            y: y + vertical_margin,
-            width: shape_width,
-            height: shape_height,
-        };
+        let mut shape_rect = Rectangle::new(
+            x + horizontal_margin,
+            y + vertical_margin,
+            shape_width,
+            shape_height,
+        );
 
         // add the shapes to the context
         for _ in 0..count {

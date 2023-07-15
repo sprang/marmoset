@@ -357,11 +357,11 @@ impl Controller {
 impl Controller {
     fn card_for_point(&self, x: f64, y: f64) -> Option<Card> {
         // calculate the tableau row and column of the mouse location
-        let cell_width = self.tableau_bounds.width / COLUMNS as f64;
-        let cell_height = self.tableau_bounds.height / ROWS as f64;
+        let cell_width = self.tableau_bounds.width() / COLUMNS as f64;
+        let cell_height = self.tableau_bounds.height() / ROWS as f64;
 
-        let col = ((x - self.tableau_bounds.x) / cell_width) as i32;
-        let row = ((y - self.tableau_bounds.y) / cell_height) as i32;
+        let col = ((x - self.tableau_bounds.x()) / cell_width) as i32;
+        let row = ((y - self.tableau_bounds.y()) / cell_height) as i32;
 
         let col_valid = 0 <= col && col < COLUMNS as i32;
         let row_valid = 0 <= row && row < ROWS as i32;
@@ -521,22 +521,17 @@ impl Controller {
             let dy = offset_y + span(y, card_height, spacing);
             for x in 0..COLUMNS {
                 let dx = offset_x + span(x, card_width, spacing);
-                let rect = Rectangle {
-                    x: dx,
-                    y: dy,
-                    width: card_width,
-                    height: card_height,
-                };
+                let rect = Rectangle::new(dx, dy, card_width, card_height);
                 self.cell_rects[y * COLUMNS + x] = rect.round();
             }
         }
 
-        let bounds = Rectangle {
-            x: offset_x,
-            y: offset_y,
-            width: span(COLUMNS, card_width, spacing),
-            height: span(ROWS, card_height, spacing),
-        };
+        let bounds = Rectangle::new(
+            offset_x,
+            offset_y,
+            span(COLUMNS, card_width, spacing),
+            span(ROWS, card_height, spacing),
+        );
 
         self.tableau_bounds = bounds.inset(spacing, spacing);
     }
@@ -595,17 +590,17 @@ impl Controller {
     fn redraw_in_rect(&self, rect: Rectangle) {
         let integral_rect = rect.round();
         self.view.queue_draw_area(
-            integral_rect.x as i32,
-            integral_rect.y as i32,
-            integral_rect.width as i32,
-            integral_rect.height as i32,
+            integral_rect.x() as i32,
+            integral_rect.y() as i32,
+            integral_rect.width() as i32,
+            integral_rect.height() as i32,
         );
     }
 
     fn redraw_cell(&self, cell_index: Option<usize>) {
         if let Some(ix) = cell_index {
             let rect = self.cell_rects[ix];
-            let padding = rect.width * 0.2;
+            let padding = rect.width() * 0.2;
             self.redraw_in_rect(rect.inset(-padding, -padding));
         }
     }
