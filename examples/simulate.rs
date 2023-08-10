@@ -57,7 +57,7 @@ use rand::{thread_rng, Rng};
 use std::cmp;
 use std::sync::mpsc;
 use std::thread;
-use time::PreciseTime;
+use time::Instant;
 
 use core::card::*;
 use core::deck::cards;
@@ -281,7 +281,7 @@ fn simulate_game(counts: &mut Counts) {
 }
 
 fn run_simulations(num_games: u64, num_threads: u64) {
-    let start_time = PreciseTime::now();
+    let start_time = Instant::now();
     let (tx, rx) = mpsc::channel();
     let (thread_chunk, rem) = (num_games / num_threads, num_games % num_threads);
 
@@ -310,7 +310,7 @@ fn run_simulations(num_games: u64, num_threads: u64) {
     }
 
     // summary
-    println!("{} seconds elapsed.\n", start_time.to(PreciseTime::now()));
+    println!("{} seconds elapsed.\n", start_time.elapsed());
     totals.print_hand_stats();
     println!();
     totals.print_end_game_stats();
@@ -321,25 +321,43 @@ fn run_simulations(num_games: u64, num_threads: u64) {
 ////////////////////////////////////////////////////////////////////////////////
 
 fn main() {
-    let games_help = &format!(
-        "Sets number of games to simulate (default: {})",
-        pretty_print(NUM_GAMES)
-    );
+    use clap::{Arg, ArgAction, Command};
+    let games_default = pretty_print(NUM_GAMES);
+    let threads_default = num_cpus::get().to_string();
 
-    let matches = clap_app!(simulate =>
-        (version: VERSION)
-        (about: "Gather statistics for simulated games of SET.")
-        (@arg GAMES: -g --games +takes_value games_help)
-        (@arg THREADS: -t --threads +takes_value "Sets number of threads")
-    )
-    .get_matches();
+    let matches = Command::new("simulate")
+        .version(VERSION)
+        .about("Gather statistics for simulated games of SET.")
+        .arg(
+            Arg::new("games")
+                .short('g')
+                .long("games")
+                .value_name("GAMES")
+                .help("Sets number of games to simulate")
+                .action(ArgAction::Set)
+                .value_parser(|s: &str| s.replace('_', "").parse::<u64>())
+                .default_value(games_default),
+        )
+        .arg(
+            Arg::new("threads")
+                .short('t')
+                .long("threads")
+                .value_name("THREADS")
+                .help("Sets number of threads")
+                .default_value(threads_default)
+                .value_parser(|s: &str| s.parse::<usize>())
+                .action(ArgAction::Set),
+        )
+        .get_matches();
 
-    let num_games = value_t!(matches, "GAMES", u64).unwrap_or(NUM_GAMES);
-    let num_threads = value_t!(matches, "THREADS", u64).unwrap_or(num_cpus::get() as u64);
+    let num_games = *matches.get_one::<u64>("games").unwrap_or(&NUM_GAMES);
+    let num_threads = *matches
+        .get_one::<usize>("threads")
+        .unwrap_or(&num_cpus::get());
 
     println!(
         "Simulating {} games. This may take some time...",
         pretty_print(num_games)
     );
-    run_simulations(num_games, num_threads);
+    run_simulations(num_games, num_threads as u64);
 }
