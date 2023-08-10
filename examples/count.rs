@@ -56,12 +56,12 @@ extern crate prettytable;
 extern crate rayon;
 extern crate time;
 
-use prettytable::Table;
 use prettytable::format::consts;
+use prettytable::Table;
 use rayon::prelude::*;
-use std::ops::Range;
 use std::cmp;
-use time::{Duration, PreciseTime};
+use std::ops::Range;
+use time::{Duration, Instant};
 
 use core::card::*;
 use core::deck::cards;
@@ -91,7 +91,7 @@ struct Count {
 }
 
 fn count_null_supersets(deal_size: usize) -> Count {
-    let start_time = PreciseTime::now();
+    let start_time = Instant::now();
     let sum = (deal_size - 1..81)
         .into_par_iter()
         .map(|x| deal_hands(x, deal_size))
@@ -100,7 +100,7 @@ fn count_null_supersets(deal_size: usize) -> Count {
     Count {
         no_supersets: sum,
         combinations: choose(81, deal_size as u64),
-        time: start_time.to(PreciseTime::now()),
+        time: start_time.elapsed(),
     }
 }
 
@@ -176,9 +176,9 @@ fn generate_table() {
 ////////////////////////////////////////////////////////////////////////////////
 
 fn main() {
-    clap_app!(count =>
-              (version: VERSION)
-              (about: "Finds all n-card deals that contain no SuperSets."))
+    clap::Command::new("count")
+        .version(VERSION)
+        .about("Finds all n-card deals that contain no SuperSets.")
         .get_matches();
 
     // initialize lookup table
@@ -223,7 +223,7 @@ fn build_lookup() {
 macro_rules! lookup {
     ($a:ident, $b:ident) => {
         SETS.get_unchecked($a).get_unchecked($b);
-    }
+    };
 }
 
 fn is_superset(a: usize, b: usize, c: usize, d: usize) -> bool {
