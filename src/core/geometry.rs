@@ -13,8 +13,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use std::f64;
 use cairo::Rectangle;
+use std::f64;
 
 pub type Point = (f64, f64);
 
@@ -30,58 +30,52 @@ pub trait RectangleExt {
 
 #[inline]
 pub fn zero_rect() -> Rectangle {
-    Rectangle { x: 0., y: 0., width: 0., height: 0. }
+    Rectangle::new(0., 0., 0., 0.)
 }
 
 impl RectangleExt for Rectangle {
     #[inline]
     fn center(&self) -> Point {
-        (self.x + self.width / 2., self.y + self.height / 2.)
+        (self.x() + self.width() / 2., self.y() + self.height() / 2.)
     }
 
     #[inline]
     fn max_x(&self) -> f64 {
-        self.x + self.width
+        self.x() + self.width()
     }
 
     #[inline]
     fn max_y(&self) -> f64 {
-        self.y + self.height
+        self.y() + self.height()
     }
 
     #[inline]
     fn inset(&self, dx: f64, dy: f64) -> Rectangle {
-        Rectangle {
-            x: self.x + dx / 2.,
-            y: self.y + dy / 2.,
-            width: self.width - dx,
-            height: self.height - dy
-        }
+        Rectangle::new(
+            self.x() + dx / 2.,
+            self.y() + dy / 2.,
+            self.width() - dx,
+            self.height() - dy,
+        )
     }
 
     #[inline]
     fn offset(&self, dx: f64, dy: f64) -> Rectangle {
-        Rectangle {
-            x: self.x + dx,
-            y: self.y + dy,
-            width: self.width,
-            height: self.height
-        }
+        Rectangle::new(self.x() + dx, self.y() + dy, self.width(), self.height())
     }
 
     #[inline]
     fn round(&self) -> Rectangle {
-        Rectangle {
-            x: f64::round(self.x),
-            y: f64::round(self.y),
-            width: f64::round(self.width),
-            height: f64::round(self.height)
-        }
+        Rectangle::new(
+            f64::round(self.x()),
+            f64::round(self.y()),
+            f64::round(self.width()),
+            f64::round(self.height()),
+        )
     }
 
     #[inline]
     fn contains_point(&self, x: f64, y: f64) -> bool {
-        x >= self.x && x <= self.max_x() &&
-            y >= self.y && y <= self.max_y()
+        x >= self.x() && x <= self.max_x() && y >= self.y() && y <= self.max_y()
     }
 }
