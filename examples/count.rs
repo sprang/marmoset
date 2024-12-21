@@ -48,7 +48,6 @@
 //! SuperSet-free.
 //!
 
-#[macro_use]
 extern crate clap;
 extern crate core;
 #[macro_use]
@@ -61,7 +60,8 @@ use prettytable::Table;
 use rayon::prelude::*;
 use std::cmp;
 use std::ops::Range;
-use time::{Duration, Instant};
+use std::sync::LazyLock;
+use std::time::{Duration, Instant};
 
 use core::card::*;
 use core::deck::cards;
@@ -155,13 +155,14 @@ fn generate_table() {
         // calculate derivable stats
         let sets = count.combinations - count.no_supersets;
         let percentage = (count.no_supersets as f64 / count.combinations as f64) * 100.;
+        let duration = duration_to_string(count.time);
 
         table.add_row(row![r => &deal.to_string(),
                            &pretty_print(sets),
                            &pretty_print(count.no_supersets),
                            &pretty_print(count.combinations),
                            &format!("{:.5} %", percentage),
-                           &count.time.to_string()]);
+                           &duration]);
         table.printstd();
         println!();
 
@@ -204,25 +205,26 @@ fn choose(n: u64, k: u64) -> u64 {
 }
 
 /// Lookup table for Sets.
-static mut SETS: [[usize; 81]; 81] = [[0; 81]; 81];
+static SETS: LazyLock<[[usize; 81]; 81]> = std::sync::LazyLock::new(|| build_lookup());
 
-fn build_lookup() {
+fn build_lookup() -> [[usize; 81]; 81] {
     let cards = cards();
+    let mut table = [[0; 81]; 81];
 
     for (&a, &b) in (0..81).collect::<Vec<_>>().pairs() {
         let c = (cards[a], cards[b]).complete_set().index();
-        unsafe {
-            SETS[a][b] = c;
-            // `complete_set()` is commutative
-            SETS[b][a] = c;
-        }
+        table[a][b] = c;
+        // `complete_set()` is commutative
+        table[b][a] = c;
     }
+
+    table
 }
 
 /// Make nested unchecked accesses less clunky.
 macro_rules! lookup {
     ($a:ident, $b:ident) => {
-        SETS.get_unchecked($a).get_unchecked($b);
+        *SETS.get_unchecked($a).get_unchecked($b)
     };
 }
 
@@ -249,4 +251,9 @@ fn contains_superset(hand: &[usize], extra: usize) -> bool {
     }
 
     false
+}
+
+fn duration_to_string(d: Duration) -> String {
+    let secs = d.as_micros() as f64 / 1_000_000.0f64;
+    format!("{}s", secs).to_string()
 }
