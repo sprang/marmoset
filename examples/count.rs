@@ -73,8 +73,6 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 const SUPERSET_SIZE: usize = 4;
 
 struct Combination {
-    /// Cards available to combine. `usize` stands in for `core::Card` here.
-    deck: Vec<usize>,
     /// Current combination.
     hand: Vec<usize>,
     /// Number of times we've dealt N cards and found no SuperSets.
@@ -105,18 +103,13 @@ fn count_null_supersets(deal_size: usize) -> Count {
 }
 
 fn deal_hands(start: usize, deal_size: usize) -> u64 {
-    // our deck of cards is really a deck of card indices
-    let cards = (0..81).collect::<Vec<usize>>();
-
     let mut data = Combination {
-        deck: cards,
         hand: Vec::with_capacity(deal_size),
         null_count: 0,
     };
 
-    data.hand.push(data.deck[start]);
+    data.hand.push(start);
     deal_another_card(&mut data, (deal_size - 2)..start);
-    data.hand.pop();
 
     data.null_count
 }
@@ -125,7 +118,7 @@ fn deal_another_card(data: &mut Combination, range: Range<usize>) {
     let depth = range.start;
 
     for y in range {
-        let next_card = data.deck[y];
+        let next_card = y;
 
         if data.hand.len() >= (SUPERSET_SIZE - 1) && contains_superset(&data.hand, next_card) {
             // There's already at least one SuperSet, so we can skip this branch
