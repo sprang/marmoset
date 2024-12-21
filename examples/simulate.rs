@@ -42,7 +42,6 @@
 //! objects directly when initializing the `SETS` lookup table, and otherwise just
 //! works with the cards by index.
 
-#[macro_use]
 extern crate clap;
 extern crate core;
 extern crate num_cpus;
@@ -55,9 +54,9 @@ use prettytable::format::consts;
 use prettytable::Table;
 use rand::{thread_rng, Rng};
 use std::cmp;
-use std::sync::mpsc;
+use std::sync::{mpsc, LazyLock};
 use std::thread;
-use time::Instant;
+use std::time::Instant;
 
 use core::card::*;
 use core::deck::cards;
@@ -202,19 +201,20 @@ impl IndexDeck {
 ////////////////////////////////////////////////////////////////////////////////
 
 /// Lookup table for Sets.
-static mut SETS: [[usize; 81]; 81] = [[0; 81]; 81];
+static SETS: LazyLock<[[usize; 81]; 81]> = std::sync::LazyLock::new(|| build_lookup());
 
-fn build_lookup() {
+fn build_lookup() -> [[usize; 81]; 81] {
     let cards = cards();
+    let mut table = [[0; 81]; 81];
 
     for (&a, &b) in (0..81).collect::<Vec<_>>().pairs() {
         let c = (cards[a], cards[b]).complete_set().index();
-        unsafe {
-            SETS[a][b] = c;
-            // `complete_set()` is commutative
-            SETS[b][a] = c;
-        }
+        table[a][b] = c;
+        // `complete_set()` is commutative
+        table[b][a] = c;
     }
+
+    table
 }
 
 #[inline(always)]
@@ -310,7 +310,7 @@ fn run_simulations(num_games: u64, num_threads: u64) {
     }
 
     // summary
-    println!("{} seconds elapsed.\n", start_time.elapsed());
+    println!("{:?} elapsed.\n", start_time.elapsed());
     totals.print_hand_stats();
     println!();
     totals.print_end_game_stats();
