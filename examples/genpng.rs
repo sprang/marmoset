@@ -16,7 +16,6 @@
 #![allow(clippy::cast_lossless)]
 
 extern crate cairo;
-#[macro_use]
 extern crate clap;
 extern crate core;
 
