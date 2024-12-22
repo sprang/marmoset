@@ -59,7 +59,6 @@ use prettytable::Table;
 use rayon::prelude::*;
 use std::cmp;
 use std::ops::Range;
-use std::sync::LazyLock;
 use std::time::{Duration, Instant};
 
 use core::card::*;
@@ -70,6 +69,8 @@ use core::utils::pretty_print;
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 /// The number of cards composing a SuperSet.
 const SUPERSET_SIZE: usize = 4;
+
+type Lookup = [[u8; 81]; 81];
 
 struct Combination {
     /// Current combination.
@@ -88,10 +89,11 @@ struct Count {
 }
 
 fn count_null_supersets(deal_size: usize) -> Count {
+    let table = build_lookup();
     let start_time = Instant::now();
     let sum = (deal_size - 1..81)
         .into_par_iter()
-        .map(|x| deal_hands(x, deal_size))
+        .map(|x| deal_hands(x, deal_size, &table))
         .sum();
 
     Count {
@@ -101,25 +103,26 @@ fn count_null_supersets(deal_size: usize) -> Count {
     }
 }
 
-fn deal_hands(start: usize, deal_size: usize) -> u64 {
+fn deal_hands(start: usize, deal_size: usize, table: &Lookup) -> u64 {
     let mut data = Combination {
         hand: Vec::with_capacity(deal_size),
         null_count: 0,
     };
 
     data.hand.push(start);
-    deal_another_card(&mut data, (deal_size - 2)..start);
+    deal_another_card(&mut data, (deal_size - 2)..start, table);
 
     data.null_count
 }
 
-fn deal_another_card(data: &mut Combination, range: Range<usize>) {
+fn deal_another_card(data: &mut Combination, range: Range<usize>, table: &Lookup) {
     let depth = range.start;
 
     for y in range {
         let next_card = y;
 
-        if data.hand.len() >= (SUPERSET_SIZE - 1) && contains_superset(&data.hand, next_card) {
+        if data.hand.len() >= (SUPERSET_SIZE - 1) && contains_superset(&data.hand, next_card, table)
+        {
             // There's already at least one SuperSet, so we can skip this branch
             continue;
         }
@@ -130,7 +133,7 @@ fn deal_another_card(data: &mut Combination, range: Range<usize>) {
         } else {
             // recursively add another card
             data.hand.push(next_card);
-            deal_another_card(data, (depth - 1)..y);
+            deal_another_card(data, (depth - 1)..y, table);
             data.hand.pop();
         }
     }
@@ -174,9 +177,6 @@ fn main() {
         .about("Finds all n-card deals that contain no SuperSets.")
         .get_matches();
 
-    // initialize lookup table
-    build_lookup();
-
     println!("Finding all n-card deals that contain no SuperSets.");
     println!("This could take some time...\n");
     generate_table();
@@ -196,15 +196,12 @@ fn choose(n: u64, k: u64) -> u64 {
     (1..m).fold(1, |product, i| product * (n + 1 - i) / i)
 }
 
-/// Lookup table for Sets.
-static SETS: LazyLock<[[usize; 81]; 81]> = std::sync::LazyLock::new(|| build_lookup());
-
-fn build_lookup() -> [[usize; 81]; 81] {
+fn build_lookup() -> Lookup {
     let cards = cards();
     let mut table = [[0; 81]; 81];
 
     for (&a, &b) in (0..81).collect::<Vec<_>>().pairs() {
-        let c = (cards[a], cards[b]).complete_set().index();
+        let c = (cards[a], cards[b]).complete_set().index() as u8;
         table[a][b] = c;
         // `complete_set()` is commutative
         table[b][a] = c;
@@ -213,29 +210,18 @@ fn build_lookup() -> [[usize; 81]; 81] {
     table
 }
 
-/// Make nested unchecked accesses less clunky.
-macro_rules! lookup {
-    ($a:ident, $b:ident) => {
-        *SETS.get_unchecked($a).get_unchecked($b)
-    };
-}
-
-fn is_superset(a: usize, b: usize, c: usize, d: usize) -> bool {
-    unsafe {
-        lookup!(a, b) == lookup!(c, d)
-            || lookup!(a, c) == lookup!(b, d)
-            || lookup!(a, d) == lookup!(b, c)
-    }
+fn is_superset(a: usize, b: usize, c: usize, d: usize, table: &Lookup) -> bool {
+    table[a][b] == table[c][d] || table[a][c] == table[b][d] || table[a][d] == table[b][c]
 }
 
 /// This function assumes that `hand` does not already contain a
 /// SuperSet. It only tests combinations that include `extra`.
 #[allow(clippy::needless_range_loop)]
-fn contains_superset(hand: &[usize], extra: usize) -> bool {
+fn contains_superset(hand: &[usize], extra: usize, table: &Lookup) -> bool {
     for a in 2..hand.len() {
         for b in 1..a {
             for c in 0..b {
-                if is_superset(hand[a], hand[b], hand[c], extra) {
+                if is_superset(hand[a], hand[b], hand[c], extra, table) {
                     return true;
                 }
             }
