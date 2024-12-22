@@ -49,6 +49,7 @@ extern crate num_cpus;
 extern crate prettytable;
 extern crate rand;
 
+use clap::Parser;
 use prettytable::format::consts;
 use prettytable::Table;
 use rand::{thread_rng, Rng};
@@ -63,11 +64,23 @@ use core::pair_iter::PairIter;
 use core::shuffle::Shuffle;
 use core::utils::*;
 
-const VERSION: &str = env!("CARGO_PKG_VERSION");
 const NUM_GAMES: u64 = 1_000_000;
 const INITIAL_DEAL: usize = 12;
 const MAX_DEAL: usize = 22;
 const SET_SIZE: usize = 3;
+
+#[derive(Parser)]
+#[command(version)]
+#[command(about = "Gather statistics for simulated games of SET.")]
+struct Cli {
+    /// Set number of games to simulate
+    #[arg(short, long, default_value_t = pretty_print(NUM_GAMES))]
+    games: String,
+
+    /// Set number of threads to utilize
+    #[arg(short, long, default_value_t = num_cpus::get())]
+    threads: usize,
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Counts
@@ -320,43 +333,16 @@ fn run_simulations(num_games: u64, num_threads: u64) {
 ////////////////////////////////////////////////////////////////////////////////
 
 fn main() {
-    use clap::{Arg, ArgAction, Command};
-    let games_default = pretty_print(NUM_GAMES);
-    let threads_default = num_cpus::get().to_string();
-
-    let matches = Command::new("simulate")
-        .version(VERSION)
-        .about("Gather statistics for simulated games of SET.")
-        .arg(
-            Arg::new("games")
-                .short('g')
-                .long("games")
-                .value_name("GAMES")
-                .help("Sets number of games to simulate")
-                .action(ArgAction::Set)
-                .value_parser(|s: &str| s.replace('_', "").parse::<u64>())
-                .default_value(games_default),
-        )
-        .arg(
-            Arg::new("threads")
-                .short('t')
-                .long("threads")
-                .value_name("THREADS")
-                .help("Sets number of threads")
-                .default_value(threads_default)
-                .value_parser(|s: &str| s.parse::<usize>())
-                .action(ArgAction::Set),
-        )
-        .get_matches();
-
-    let num_games = *matches.get_one::<u64>("games").unwrap_or(&NUM_GAMES);
-    let num_threads = *matches
-        .get_one::<usize>("threads")
-        .unwrap_or(&num_cpus::get());
+    let cli = Cli::parse();
+    let games = cli
+        .games
+        .replace('_', "")
+        .parse::<u64>()
+        .unwrap_or(NUM_GAMES);
 
     println!(
         "Simulating {} games. This may take some time...",
-        pretty_print(num_games)
+        pretty_print(games)
     );
-    run_simulations(num_games, num_threads as u64);
+    run_simulations(games, cli.threads as u64);
 }
