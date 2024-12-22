@@ -31,15 +31,15 @@ path = "examples/genpng.rs"
 name = "genpng"
 
 [dependencies]
-clap = { version = "4.5", features = ["derive","string"] }
+clap = { version = "4.5", features = ["derive"] }
 gdk = "0.17"
 gdk-pixbuf = "0.17"
 glib = "0.17"
 num-traits = "0.2"
-num_cpus = "1.12"
+num_cpus = "1.16"
 prettytable-rs = "0.10"
 rand = "0.8"
-rayon = "1.3"
+rayon = "1.10"
 serde = "1.0"
 serde_derive = "1.0"
 serde_yaml = "0.9"
