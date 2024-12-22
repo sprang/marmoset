@@ -30,6 +30,7 @@ use core::graphics::*;
 use core::utils::clamp;
 
 const CARD_ASPECT_RATIO: f64 = 3.5 / 2.25;
+const DEFAULT_CARD_WIDTH: i32 = 350;
 
 #[derive(Parser)]
 #[command(version)]
@@ -39,12 +40,12 @@ struct Cli {
     directory: String,
 
     /// Set the card width in pixels
-    #[arg(short, long)]
-    width: Option<i32>,
+    #[arg(short, long, default_value_t = DEFAULT_CARD_WIDTH)]
+    width: i32,
 
     /// Set the border width in pixels
-    #[arg(short, long)]
-    border: Option<i32>,
+    #[arg(short, long, default_value_t = 0)]
+    border: i32,
 
     /// Orient cards vertically
     #[arg(short, long)]
@@ -122,8 +123,8 @@ fn main() {
     let cli = Cli::parse();
 
     let path = &cli.directory;
-    let width = cli.width.unwrap_or(350);
-    let border = cli.border.unwrap_or(0);
+    let width = cli.width;
+    let border = cli.border;
     let render_vertically = cli.vertical;
     let classic_colors = cli.classic;
 
