@@ -17,7 +17,6 @@ extern crate cairo;
 extern crate num_traits;
 extern crate rand;
 #[macro_use] extern crate serde_derive;
-extern crate time;
 
 // model
 pub mod card;

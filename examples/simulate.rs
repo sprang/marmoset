@@ -48,7 +48,6 @@ extern crate num_cpus;
 #[macro_use]
 extern crate prettytable;
 extern crate rand;
-extern crate time;
 
 use prettytable::format::consts;
 use prettytable::Table;

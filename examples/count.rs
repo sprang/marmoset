@@ -53,7 +53,6 @@ extern crate core;
 #[macro_use]
 extern crate prettytable;
 extern crate rayon;
-extern crate time;
 
 use prettytable::format::consts;
 use prettytable::Table;
