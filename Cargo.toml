@@ -31,7 +31,7 @@ path = "examples/genpng.rs"
 name = "genpng"
 
 [dependencies]
-clap = { version = "4.4", features = ["string"] }
+clap = { version = "4.5", features = ["derive","string"] }
 gdk = "0.17"
 gdk-pixbuf = "0.17"
 glib = "0.17"

@@ -20,6 +20,7 @@ extern crate clap;
 extern crate core;
 
 use cairo::{Context, Format, ImageSurface, Operator, Rectangle};
+use clap::Parser;
 use std::f64::consts::FRAC_PI_2;
 use std::fs::File;
 use std::mem;
@@ -28,8 +29,31 @@ use core::deck::cards;
 use core::graphics::*;
 use core::utils::clamp;
 
-const VERSION: &str = env!("CARGO_PKG_VERSION");
 const CARD_ASPECT_RATIO: f64 = 3.5 / 2.25;
+
+#[derive(Parser)]
+#[command(version)]
+#[command(about = "Generate an image for each Marmoset card.")]
+struct Cli {
+    /// The directory in which to write the images
+    directory: String,
+
+    /// Set the card width in pixels
+    #[arg(short, long)]
+    width: Option<i32>,
+
+    /// Set the border width in pixels
+    #[arg(short, long)]
+    border: Option<i32>,
+
+    /// Orient cards vertically
+    #[arg(short, long)]
+    vertical: bool,
+
+    /// Use classic SET colors
+    #[arg(short, long)]
+    classic: bool,
+}
 
 fn generate_card_images(
     path: &str,
@@ -95,57 +119,13 @@ fn generate_card_images(
 }
 
 fn main() {
-    use clap::{Arg, ArgAction, Command};
-    let matches = Command::new("genpng")
-        .version(VERSION)
-        .about("Generate an image for each Marmoset card.")
-        .arg(
-            Arg::new("directory")
-                .value_name("DIRECTORY")
-                .action(ArgAction::Set)
-                .help("The directory to write the images to")
-                .long("directory")
-                .required(true),
-        )
-        .arg(
-            Arg::new("width")
-                .short('w')
-                .long("width")
-                .value_name("WIDTH")
-                .action(ArgAction::Set)
-                .help("Sets the card width in pixels"),
-        )
-        .arg(
-            Arg::new("border")
-                .short('b')
-                .long("border")
-                .value_name("BORDER")
-                .action(ArgAction::Set)
-                .help("Sets the border width in pixels"),
-        )
-        .arg(
-            Arg::new("vertical")
-                .short('v')
-                .long("render-vertically")
-                .value_name("VERTICAL")
-                .action(ArgAction::SetTrue)
-                .help("Orients cards vertically"),
-        )
-        .arg(
-            Arg::new("classic")
-                .short('c')
-                .long("classic-colors")
-                .action(ArgAction::SetTrue)
-                .value_name("CLASSIC")
-                .help("Uses classic SET colors"),
-        )
-        .get_matches();
+    let cli = Cli::parse();
 
-    let path = matches.get_one::<String>("directory").unwrap();
-    let width = *matches.get_one::<i32>("width").unwrap_or(&350 as &i32);
-    let border = *matches.get_one::<i32>("border").unwrap_or(&0 as &i32);
-    let render_vertically = matches.get_flag("vertical");
-    let classic_colors = matches.get_flag("classic");
+    let path = &cli.directory;
+    let width = cli.width.unwrap_or(350);
+    let border = cli.border.unwrap_or(0);
+    let render_vertically = cli.vertical;
+    let classic_colors = cli.classic;
 
     // keep values within reasonable ranges
     let width = clamp(width, (64, 6400));
